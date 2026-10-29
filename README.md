@@ -1,5 +1,7 @@
 # CSE 903 Mid-1 — Interactive Exam Prep
 
+**Live site:** https://x-avi-x.github.io/LinAlg-Exam-Prep/ (progress is saved in your browser; export/import it from the "Progress file" page)
+
 ## Run (progress saved to `progress.json`)
 ```bash
 cd LinAlg-Exam-Prep

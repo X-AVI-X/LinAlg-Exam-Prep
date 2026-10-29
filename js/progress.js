@@ -39,7 +39,7 @@
       } catch (e) { /* no server */ }
     }
     data = merge(local || {});
-    status('💾 Saving in this browser (run server.js for progress.json)');
+    status(location.protocol === 'file:' ? '💾 Saving in this browser (run server.js for progress.json)' : '💾 Progress saved in this browser');
   }
 
   function save() {
