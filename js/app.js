@@ -98,21 +98,25 @@
   function solPage(aid, query) {
     const a = ASG.find((x) => x.id === aid);
     if (!a) return notFound();
-    app.innerHTML = `<h1>${a.title}</h1>
-      <p class="muted">Source: <code>MID 1/${a.file}</code> · Try each question on paper first, then open the solution. Tick the box once you can reproduce it without looking.</p>
+    app.innerHTML = `<div class="row space"><h1>${a.title}</h1>${langSwitch()}</div>
+      <p class="muted">Source: <code>MID 1/${a.file}</code> · ${bn() ? 'আগে প্রতিটা প্রশ্ন খাতায় নিজে চেষ্টা করো, তারপর সমাধান খোলো। না দেখে পারলে বক্সে টিক দাও।' : 'Try each question on paper first, then open the solution. Tick the box once you can reproduce it without looking.'}</p>
       ${a.questions.map((q) => `
         <details class="q" id="q-${q.id}">
           <summary><span>${q.title}</span><span class="marks pill">${q.marks} marks</span>${Progress.solved(q.id) ? '<span class="pill ok">✓</span>' : ''}</summary>
           <div class="body"><div class="qtext">${q.text}</div>
             <label class="check" style="margin:6px 0"><input type="checkbox" data-q="${q.id}" ${Progress.solved(q.id) ? 'checked' : ''}> I can do this without looking</label>
-            <div class="sol"><button class="primary showSol">Show full solution</button></div></div>
+            <div class="sol"><button class="primary showSol">${bn() ? 'সমাধান দেখাও' : 'Show full solution'}</button></div></div>
         </details>`).join('')}`;
     U.renderMath(app);
+    bindLangSwitch();
     app.querySelectorAll('details.q').forEach((d) => {
       const q = a.questions.find((x) => 'q-' + x.id === d.id);
       d.querySelector('.showSol').onclick = (e) => {
         const box = e.target.parentElement;
-        try { box.innerHTML = q.solve(); } catch (err) { box.innerHTML = `<p class="err">Error: ${U.esc(err.message)}</p>`; }
+        const bnHtml = bn() && window.SOLUTIONS_BN[q.id];
+        try {
+          box.innerHTML = bnHtml ? `<div class="bn-sol" lang="bn">${bnHtml}</div><h3 class="bn-sep">সম্পূর্ণ ধাপে ধাপে working (English)</h3>${q.solve()}` : q.solve();
+        } catch (err) { box.innerHTML = `<p class="err">Error: ${U.esc(err.message)}</p>`; }
         U.renderMath(box);
       };
       d.querySelector('input[type=checkbox]').onchange = (e) => { Progress.setSolved(q.id, e.target.checked); renderNav('/sol/' + aid); };
