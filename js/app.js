@@ -21,6 +21,7 @@
     const tick = (ok) => (ok ? '<span class="tick">✓</span>' : '');
     document.getElementById('nav').innerHTML = `
       ${link('#/', '🏠 Dashboard')}
+      ${link('#/simple', '🧸 Plain-English guide · বাংলা')}
       ${link('#/cheatsheet', '📋 Formula sheet & strategy')}
       <div class="nav-group"><div class="label">Topics</div>
         ${TOPICS.map((t) => link(`#/topic/${t.id}`, `${t.n}. ${t.title}`, tick(Progress.topicDone(t.id)))).join('')}</div>
@@ -46,6 +47,7 @@
     app.innerHTML = `
       <h1>CSE 903 Mid-1 — exam prep</h1>
       <p class="muted">Everything from Assignments 1–3 and the Class 4 & 5 homework: notes, every question solved step by step, solvers that show the working, and unlimited practice.</p>
+      ${U.box('good', '🧸 Lost? Start with the Plain-English guide (English / বাংলা)', '<p>Every topic explained with everyday pictures and one tiny worked example: <a href="#/simple"><b>open the guide</b></a>.</p>')}
       <div class="stats">
         <div class="stat"><div class="v">${overall}%</div><div class="l">Overall readiness</div><div class="bar"><span style="width:${overall}%"></span></div></div>
         <div class="stat"><div class="v">${nTopics}/${TOPICS.length}</div><div class="l">Topics mastered</div></div>
@@ -308,6 +310,52 @@
     app.querySelector('#rst').onclick = () => { if (confirm('Erase all progress?')) { Progress.reset(); route(); } };
   }
 
+  /* ---------- plain-English guide (English / বাংলা) ---------- */
+  let guideLang = 'en';
+  try { guideLang = localStorage.getItem('cse903-guide-lang') || 'en'; } catch (e) { /* ignore */ }
+  const bn = () => guideLang === 'bn';
+  // the guide in the chosen language; Bangla text falls back to English per entry
+  const guide = () => window.SIMPLE.map((t) => (bn() && window.SIMPLE_BN[t.id] ? { ...t, ...window.SIMPLE_BN[t.id] } : t));
+  const langSwitch = () => `<div class="lang-switch" role="group" aria-label="Language">
+      <button data-lang="en" class="${bn() ? '' : 'on'}">English</button><button data-lang="bn" class="${bn() ? 'on' : ''}">বাংলা</button></div>`;
+  function bindLangSwitch() {
+    app.querySelectorAll('.lang-switch button').forEach((b) => b.onclick = () => {
+      guideLang = b.dataset.lang;
+      try { localStorage.setItem('cse903-guide-lang', guideLang); } catch (e) { /* ignore */ }
+      route();
+    });
+  }
+
+  function simpleIndex() {
+    const S = guide();
+    app.innerHTML = `<div class="row space"><a href="#/" class="small">← Dashboard</a>${langSwitch()}</div>
+      <h1>🧸 ${bn() ? 'সহজ ভাষায় গাইড' : 'Plain-English guide'}</h1>
+      <p class="muted">${bn() ? 'প্রতিটা topic দৈনন্দিন উদাহরণ আর হাতে করা একটা ছোট অঙ্ক দিয়ে ব্যাখ্যা করা। আগে এখানে পড়ো, তারপর আসল notes আর সমাধান খোলো।' : 'Every topic explained with everyday pictures and one tiny example done by hand. Read a page here first, then open the real notes and solved questions.'}</p>
+      ${U.box('key', bn() ? 'এখান থেকে শুরু করো' : 'Start here', `<p>${bn() ? 'আগে পড়ো' : 'Read'} <a href="#/simple/${S[0].id}"><b>${S[0].emoji} ${S[0].title}</b></a> ${bn() ? '— এখানে দেখাবে সব topic আসলে একই আইডিয়া (matrix একটা মেশিন), আর Assignment 1-এর skill সব জায়গায় কাজে লাগে।' : 'first: it shows how every topic is the same idea (a matrix is a machine) and how your Assignment 1 skills reuse everywhere.'}</p>`)}
+      <div class="grid">${S.map((t) => `<a class="tile" href="#/simple/${t.id}"><div class="t">${t.emoji} ${t.title}</div><div class="d">${t.line}</div><div class="meta"><span>${t.asg}</span></div></a>`).join('')}</div>`;
+    app.lang = guideLang;
+    bindLangSwitch();
+  }
+
+  function simplePage(id) {
+    const S = guide();
+    const i = S.findIndex((x) => x.id === id);
+    if (i < 0) return notFound();
+    const t = S[i], prev = S[i - 1], next = S[i + 1];
+    const real = TOPICS.find((x) => x.id === id);
+    const more = real ? `<h2>${bn() ? 'এরপর: অনুশীলন করো (English)' : 'Next: practise it'}</h2><div class="row">
+        <a class="btn primary" href="#/topic/${real.id}">📖 ${bn() ? 'পূর্ণ notes' : 'Full notes'}: ${real.title}</a>
+        ${real.solutions.map((qid) => { const f = window.findQuestion(qid); return f ? `<a class="btn" href="#/sol/${f.a.id}?q=${qid}">✍️ ${f.a.title.split(' — ')[0]}: ${f.q.title.split(' — ')[0]}</a>` : ''; }).join('')}
+        <a class="btn" href="#/quiz?topic=${real.id}">❓ Quiz</a></div>` : '';
+    app.innerHTML = `<div class="row space"><a href="#/simple" class="small">← ${bn() ? 'সহজ ভাষায় গাইড' : 'Plain-English guide'}</a>${langSwitch()}</div>
+      <h1>${t.emoji} ${t.title}</h1><p class="muted">${t.line} · <span class="pill acc">${t.asg}</span></p>
+      <div class="card simple">${t.html}</div>${more}
+      <div class="row space">${prev ? `<a class="btn" href="#/simple/${prev.id}">← ${prev.title}</a>` : '<span></span>'}${next ? `<a class="btn" href="#/simple/${next.id}">${next.title} →</a>` : ''}</div>`;
+    app.lang = guideLang;
+    bindLangSwitch();
+    U.renderMath(app);
+  }
+
   function notFound() { app.innerHTML = '<h1>Not found</h1><p><a href="#/">Back to dashboard</a></p>'; }
 
   /* ---------- router ---------- */
@@ -315,6 +363,7 @@
   document.addEventListener('keydown', (e) => keyHandler && keyHandler(e));
   function route() {
     keyHandler = null;
+    app.lang = 'en';
     const h = location.hash.slice(1) || '/';
     const [path, qs] = h.split('?');
     const query = Object.fromEntries(new URLSearchParams(qs || ''));
@@ -332,6 +381,7 @@
       case 'mistakes': mistakesPage(); break;
       case 'flash': flashPage(query); break;
       case 'practice': practicePage(query); break;
+      case 'simple': parts[1] ? simplePage(parts[1]) : simpleIndex(); break;
       case 'cheatsheet': cheatsheet(); break;
       case 'progress': progressPage(); break;
       default: notFound();

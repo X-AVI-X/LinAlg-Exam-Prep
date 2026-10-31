@@ -191,3 +191,13 @@ canvas { max-width: 100%; background: var(--panel-2); border-radius: 10px; }
 .check { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-weight: 600; }
 .check input { width: 18px; height: 18px; accent-color: var(--good); }
 kbd { font-family: var(--mono); font-size: .8em; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; }
+
+/* plain-English guide */
+table.simple-map { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: .93rem; }
+table.simple-map th, table.simple-map td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+table.simple-map th { background: var(--panel-2); }
+.card.simple { overflow-x: auto; }
+[lang="bn"] { font-family: 'Hind Siliguri', 'Inter', system-ui, sans-serif; line-height: 1.75; }
+.lang-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 99px; overflow: hidden; }
+.lang-switch button { background: transparent; color: var(--muted); border: 0; padding: 5px 14px; font: inherit; font-size: .85rem; cursor: pointer; }
+.lang-switch button.on { background: var(--accent); color: #fff; }
